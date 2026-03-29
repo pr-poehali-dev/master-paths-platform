@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 type ParticipantView = "home" | "cabinet" | "quest" | "level";
@@ -121,6 +122,7 @@ const MOCK_LEVELS: QuestLevel[] = [
 const YOOMONEY_URL = "https://yoomoney.ru/to/410017253212598/0";
 
 export default function ParticipantPage() {
+  const navigate = useNavigate();
   const [view, setView] = useState<ParticipantView>("home");
   const [selectedPath, setSelectedPath] = useState<QuestPath | null>(null);
   const [activeLevel, setActiveLevel] = useState<QuestLevel | null>(null);
@@ -133,6 +135,7 @@ export default function ParticipantPage() {
   const [contactText, setContactText] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [contactSent, setContactSent] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { id: "1", text: "Добро пожаловать! Чем могу помочь?", time: "10:00", isOwner: true },
     { id: "2", text: "Не могу понять загадку 3-го уровня", time: "14:22", isOwner: false },
@@ -140,9 +143,12 @@ export default function ParticipantPage() {
   ]);
   const [chatInput, setChatInput] = useState("");
   const [showChat, setShowChat] = useState(false);
-  const [usedHint, setUsedHint] = useState(false);
   const [score, setScore] = useState(380);
   const [paths] = useState<QuestPath[]>(MOCK_PATHS);
+  // Профиль
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ name: "Алексей М.", email: "aleksey@mail.ru", phone: "+7 900 111-22-33", password: "" });
+  const [profileSaved, setProfileSaved] = useState(false);
 
   const activePath = paths.find(p => p.status === "in_progress");
   const myPaths = paths.filter(p => p.status === "in_progress" || p.status === "not_started" || p.status === "completed");
@@ -170,9 +176,7 @@ export default function ParticipantPage() {
 
   const handleHint = (hintIndex: number) => {
     if (!activeLevel) return;
-    const cost = 50;
-    setScore(prev => Math.max(0, prev - cost));
-    setUsedHint(true);
+    setScore(prev => Math.max(0, prev - 50));
     setLevels(prev => prev.map(l => l.id === activeLevel.id ? { ...l, hintsUsed: hintIndex + 1 } : l));
   };
 
@@ -185,6 +189,17 @@ export default function ParticipantPage() {
       isOwner: false,
     }]);
     setChatInput("");
+  };
+
+  const saveProfile = () => {
+    setProfileSaved(true);
+    setTimeout(() => { setProfileSaved(false); setShowEditProfile(false); }, 1200);
+  };
+
+  const sendContact = () => {
+    if (!contactText.trim()) return;
+    setContactSent(true);
+    setTimeout(() => { setContactSent(false); setShowContactForm(false); setContactText(""); setContactName(""); setContactEmail(""); }, 1500);
   };
 
   const currentLevelInQuest = levels.find(l => !l.solved) || levels[levels.length - 1];
@@ -207,7 +222,6 @@ export default function ParticipantPage() {
           </button>
 
           <div className="flex items-center gap-3">
-            {/* Баллы */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: "hsl(43 40% 12%)", border: "1px solid hsl(43 60% 25%)" }}>
               <span className="text-sm">✦</span>
               <span className="font-cormorant font-bold text-base" style={{ color: "hsl(43 85% 65%)" }}>{score}</span>
@@ -215,10 +229,13 @@ export default function ParticipantPage() {
             </div>
             <button onClick={() => setView("cabinet")} className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:opacity-80" style={{ background: "hsl(260 40% 15%)", border: "1px solid hsl(260 30% 25%)" }}>
               <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-cormorant" style={{ background: "hsl(265 55% 40%)", color: "hsl(45 80% 88%)" }}>А</div>
-              <span className="text-sm font-golos" style={{ color: "hsl(45 60% 75%)" }}>Алексей М.</span>
+              <span className="text-sm font-golos" style={{ color: "hsl(45 60% 75%)" }}>{profileForm.name}</span>
             </button>
-            <button onClick={() => setShowContactForm(true)} className="p-2 rounded-lg transition-all hover:opacity-80" style={{ background: "hsl(260 40% 15%)", border: "1px solid hsl(260 30% 25%)", color: "hsl(220 20% 55%)" }}>
+            <button onClick={() => setShowContactForm(true)} className="p-2 rounded-lg transition-all hover:opacity-80" title="Написать владельцу" style={{ background: "hsl(260 40% 15%)", border: "1px solid hsl(260 30% 25%)", color: "hsl(220 20% 55%)" }}>
               <Icon name="MessageCircle" size={16} />
+            </button>
+            <button onClick={() => navigate("/auth")} className="p-2 rounded-lg transition-all hover:opacity-80" title="Выйти" style={{ background: "hsl(260 40% 15%)", border: "1px solid hsl(260 30% 25%)", color: "hsl(220 20% 45%)" }}>
+              <Icon name="LogOut" size={16} />
             </button>
           </div>
         </div>
@@ -362,15 +379,18 @@ export default function ParticipantPage() {
               <div className="space-y-5">
                 <div className="mystic-card rounded-2xl p-6 text-center">
                   <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-bold font-cormorant animate-glow-pulse"
-                    style={{ background: "linear-gradient(135deg, hsl(265 55% 30%), hsl(225 60% 25%))", color: "hsl(43 85% 65%)", border: "2px solid hsl(43 85% 58% / 0.4)" }}>А</div>
-                  <h3 className="font-cormorant text-xl font-bold" style={{ color: "hsl(45 80% 82%)" }}>Алексей М.</h3>
-                  <p className="text-xs mt-1" style={{ color: "hsl(220 20% 45%)" }}>aleksey@mail.ru</p>
+                    style={{ background: "linear-gradient(135deg, hsl(265 55% 30%), hsl(225 60% 25%))", color: "hsl(43 85% 65%)", border: "2px solid hsl(43 85% 58% / 0.4)" }}>
+                    {profileForm.name[0]}
+                  </div>
+                  <h3 className="font-cormorant text-xl font-bold" style={{ color: "hsl(45 80% 82%)" }}>{profileForm.name}</h3>
+                  <p className="text-xs mt-1" style={{ color: "hsl(220 20% 45%)" }}>{profileForm.email}</p>
+                  <p className="text-xs" style={{ color: "hsl(220 20% 40%)" }}>{profileForm.phone}</p>
                   <div className="flex items-center justify-center gap-1.5 mt-2">
                     <span className="text-base" style={{ filter: "drop-shadow(0 0 5px hsl(43 85% 58%))" }}>✦</span>
                     <span className="font-cormorant text-xl font-bold" style={{ color: "hsl(43 85% 65%)" }}>{score}</span>
                     <span className="text-xs" style={{ color: "hsl(220 20% 45%)" }}>баллов</span>
                   </div>
-                  <button className="mt-4 w-full py-2 rounded-lg text-sm font-golos transition-all hover:-translate-y-0.5"
+                  <button onClick={() => setShowEditProfile(true)} className="mt-4 w-full py-2 rounded-lg text-sm font-golos transition-all hover:-translate-y-0.5"
                     style={{ background: "hsl(260 40% 18%)", border: "1px solid hsl(260 30% 28%)", color: "hsl(45 60% 75%)" }}>
                     Редактировать профиль
                   </button>
@@ -737,7 +757,48 @@ export default function ParticipantPage() {
                 <textarea value={contactText} onChange={e => setContactText(e.target.value)} placeholder="Опишите вопрос или проблему..." rows={4}
                   className="mystic-input w-full px-4 py-2.5 rounded-xl text-sm font-golos resize-none" />
               </div>
-              <button onClick={() => setShowContactForm(false)} className="w-full btn-gold py-3 rounded-xl font-cormorant font-semibold text-base">Отправить</button>
+              {contactSent ? (
+                <div className="w-full py-3 rounded-xl text-center font-cormorant font-semibold text-base flex items-center justify-center gap-2 animate-fade-in" style={{ background: "hsl(43 40% 18%)", color: "hsl(43 85% 58%)" }}>
+                  <Icon name="CheckCircle" size={18} /> Отправлено!
+                </div>
+              ) : (
+                <button onClick={sendContact} className="w-full btn-gold py-3 rounded-xl font-cormorant font-semibold text-base">Отправить</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ МОДАЛ РЕДАКТИРОВАНИЯ ПРОФИЛЯ ═══ */}
+      {showEditProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay" onClick={() => setShowEditProfile(false)}>
+          <div className="mystic-card rounded-2xl w-full max-w-md animate-fade-in-scale p-6" style={{ border: "1px solid hsl(260 30% 28%)" }} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-cormorant text-2xl font-bold" style={{ color: "hsl(45 80% 82%)" }}>Редактировать профиль</h3>
+              <button onClick={() => setShowEditProfile(false)} style={{ color: "hsl(220 20% 45%)" }}><Icon name="X" size={16} /></button>
+            </div>
+            <div className="space-y-4">
+              {[
+                { key: "name", label: "Имя", type: "text" },
+                { key: "email", label: "Email", type: "email" },
+                { key: "phone", label: "Телефон", type: "text" },
+                { key: "password", label: "Новый пароль", type: "password" },
+              ].map(f => (
+                <div key={f.key}>
+                  <label className="text-xs font-golos mb-1.5 block" style={{ color: "hsl(220 20% 50%)" }}>{f.label}</label>
+                  <input value={profileForm[f.key as keyof typeof profileForm]}
+                    onChange={e => setProfileForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                    type={f.type} placeholder={f.key === "password" ? "Оставьте пустым, если не меняете" : ""}
+                    className="mystic-input w-full px-4 py-2.5 rounded-xl text-sm font-golos" />
+                </div>
+              ))}
+              {profileSaved ? (
+                <div className="w-full py-3 rounded-xl text-center font-cormorant font-semibold flex items-center justify-center gap-2" style={{ background: "hsl(43 40% 18%)", color: "hsl(43 85% 58%)" }}>
+                  <Icon name="CheckCircle" size={18} /> Сохранено!
+                </div>
+              ) : (
+                <button onClick={saveProfile} className="w-full btn-gold py-3 rounded-xl font-cormorant font-semibold text-base">Сохранить</button>
+              )}
             </div>
           </div>
         </div>
