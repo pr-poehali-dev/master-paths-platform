@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 type Tab = "sites" | "achievements" | "cabinet" | "chat";
@@ -55,6 +56,7 @@ const MOCK_MESSAGES: Message[] = [
 ];
 
 export default function Index() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>("sites");
   const [showIntegrationModal, setShowIntegrationModal] = useState(false);
   const [integrationMode, setIntegrationMode] = useState<"accept" | "add" | null>(null);
@@ -115,7 +117,11 @@ export default function Index() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate("/participant")} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-golos transition-all hover:opacity-80" style={{ background: "hsl(260 40% 14%)", border: "1px solid hsl(260 30% 22%)", color: "hsl(270 50% 65%)" }}>
+              <Icon name="Users" size={14} />
+              Кабинет участника
+            </button>
             <button
               onClick={() => setShowIntegrationModal(true)}
               className="btn-gold flex items-center gap-2 px-5 py-2.5 rounded-lg"
@@ -123,10 +129,10 @@ export default function Index() {
               <Icon name="Link2" size={16} />
               <span className="font-cormorant font-semibold" style={{ letterSpacing: "0.06em" }}>Интеграции</span>
             </button>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(260 40% 15%)", border: "1px solid hsl(260 30% 25%)" }}>
+            <button onClick={() => navigate("/auth")} className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:opacity-80" style={{ background: "hsl(260 40% 15%)", border: "1px solid hsl(260 30% 25%)" }}>
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold font-cormorant" style={{ background: "hsl(265 55% 40%)", color: "hsl(45 80% 88%)" }}>В</div>
               <span className="text-sm font-golos" style={{ color: "hsl(45 60% 75%)" }}>Владелец</span>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -606,11 +612,18 @@ export default function Index() {
                     </div>
                   </div>
                   <div className="rounded-xl p-4 mb-5" style={{ background: "hsl(265 30% 10%)", border: "1px solid hsl(260 30% 22%)" }}>
-                    <p className="text-xs mb-2 font-golos" style={{ color: "hsl(220 20% 45%)" }}>Промт для ИИ (скопируйте в Поехали!)</p>
-                    <p className="text-xs leading-relaxed font-golos" style={{ color: "hsl(260 40% 65%)" }}>
-                      Создай квест-сайт и интегрируй с платформой «Мастер Путей». Ключ: <code className="font-mono" style={{ color: "hsl(43 85% 60%)" }}>{generatedKey}</code>. Endpoint: https://master-putey.ru/api/integration. Добавь кнопку «Интеграции» со статусами «Подключение…», «Успешно», «Ошибка».
+                    <p className="text-xs mb-2 font-golos font-semibold" style={{ color: "hsl(270 50% 60%)" }}>Промт-шаблон для ИИ (Поехали!)</p>
+                    <p className="text-xs leading-relaxed font-golos" style={{ color: "hsl(260 40% 65%)", lineHeight: "1.7" }}>
+                      Создай квест-сайт и подключи к платформе «Мастер Путей». Ключ интеграции: <code className="font-mono px-1 py-0.5 rounded" style={{ color: "hsl(43 85% 60%)", background: "hsl(43 40% 12%)" }}>{generatedKey}</code>. Endpoint: <code className="font-mono" style={{ color: "hsl(43 85% 60%)" }}>https://master-putey.ru/api/integration</code>.{"\n\n"}
+                      Добавь кнопку «Интеграции» с тремя статусами: «Подключение…» (жёлтый), «Успешно» (зелёный), «Ошибка» (красный с описанием).{"\n\n"}
+                      На главной странице отобрази список Путей (квестов). Открытые Пути — с активной золотой кнопкой «Начать Путь». Закрытые — с замком и кнопкой оплаты (ЮMoney: https://yoomoney.ru/to/410017253212598/0). Стоимость настраивается владельцем отдельно для каждого сайта.{"\n\n"}
+                      Кабинет участника: список начатых Путей + один следующий (потенциал). Кнопки: «Начать Путь», «Оплата», «Написать владельцу» (чат-мессенджер внутри кабинета).{"\n\n"}
+                      Прохождение уровня: поле ввода ответа, подсказки (−50 баллов каждая), при правильном ответе — всплывающая золотая кнопка «✦ ПРОХОД ОТКРЫТ ✦» с анимацией, затем переход к следующему уровню. Итоговый рейтинг по баллам и времени.{"\n\n"}
+                      Регистрация: логин + пароль + email. На главной — форма «Сообщить» для незарегистрированных. Дизайн: тёмный мистический стиль, синий + фиолетовый + золото, шрифт Cormorant Garamond для заголовков.
                     </p>
-                    <button className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs" style={{ background: "hsl(260 40% 18%)", color: "hsl(270 60% 65%)" }}>
+                    <button
+                      onClick={() => navigator.clipboard?.writeText(`Создай квест-сайт и подключи к платформе «Мастер Путей». Ключ интеграции: ${generatedKey}. Endpoint: https://master-putey.ru/api/integration. Добавь кнопку «Интеграции» с тремя статусами: «Подключение…» (жёлтый), «Успешно» (зелёный), «Ошибка» (красный). На главной странице отобрази список Путей. Открытые — с золотой кнопкой «Начать Путь». Закрытые — с замком и кнопкой оплаты ЮMoney. Кабинет участника: список начатых Путей + один следующий потенциальный. Кнопки: «Начать Путь», «Оплата», «Написать владельцу» (чат внутри кабинета). Прохождение уровня: поле ввода ответа, подсказки (−50 баллов), при верном ответе — анимация «✦ ПРОХОД ОТКРЫТ ✦» и переход к следующему уровню. Рейтинг по баллам и времени. Регистрация: логин + пароль + email. Дизайн: тёмный мистический, синий + фиолетовый + золото, Cormorant Garamond.`)}
+                      className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all hover:opacity-80" style={{ background: "hsl(260 40% 18%)", color: "hsl(270 60% 65%)" }}>
                       <Icon name="Copy" size={12} /> Скопировать промт
                     </button>
                   </div>
